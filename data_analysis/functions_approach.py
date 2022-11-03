@@ -66,11 +66,26 @@ for i in range(0, len(soils)):
      custom_soil2.append(soils)
      
      
-     
-     
-     
-     
-     
+
+
+
+#define response variable
+y = irrig_df_test['WIMAS']
+
+#define predictor variables
+x = irrig_df_test[['Aquacrop']]
+
+#add constant to predictor variables
+x = sm.add_constant(x)
+
+#fit linear regression model
+model = sm.OLS(y, x).fit()
+
+#view model summary
+#model = model.summary()
+
+results_as_html = model.summary().tables[1].as_html()
+pd.read_html(results_as_html, header=0, index_col=0)[0]
      
      
      

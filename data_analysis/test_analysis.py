@@ -9,6 +9,9 @@ Created on Thu Oct  6 19:25:20 2022
 
 !pip install aquacrop==2.2
 !pip install numba==0.55
+!pip install statsmodels==0.13.2
+import statsmodels.api as sm
+from statsmodels.tools.eval_measures import rmse
 from aquacrop.utils import prepare_weather, get_filepath
 from aquacrop import AquaCropModel, Soil, Crop, InitialWaterContent, IrrigationManagement
 #from aquacrop.entities import IrrigationManagement
@@ -55,8 +58,8 @@ for i in range(0, len(soils)): # full model replace with soils
     ts =soils["thetaS_m3m3"][i]
     ks=(soils['Ksat_cmHr'][i])*240
     #tp = soils['thetaR_m3m3'][i]
-    custom = Soil('custom')
-    custom.add_layer(thickness=0.1,thS=ts, # assuming soil properties are the same in the upper 0.1m
+    custom = Soil('custom', dz=[0.1]*30)
+    custom.add_layer(thickness=custom.zSoil,thS=ts, # assuming soil properties are the same in the upper 0.1m
                      Ksat=ks,thWP =wp , 
                      thFC = fc, penetrability = 100.0)
     custom_soil.append(custom)
@@ -89,7 +92,7 @@ custom = test_site[0] # use custom layer for 1 site
 crop = Crop('Maize', planting_date='05/01') 
 initWC = InitialWaterContent(value=['FC'])
 irr_mngt = IrrigationManagement(irrigation_method=1,SMT=[80]*4)
-
+#irr_mngt = IrrigationManagement(irrigation_method = 0) # no irrigation
 ############
 # test for changing the soil types
 #custom = Soil('custom',cn=46,rew=7)
@@ -100,8 +103,7 @@ irr_mngt = IrrigationManagement(irrigation_method=1,SMT=[80]*4)
 #soil = Soil('Loam')
 #############
 
-
-
+#g = custom.profile
 
 # run model
 model = AquaCropModel(sim_start,sim_end,wdf,custom,crop,initWC, irr_mngt)
@@ -109,6 +111,9 @@ model = AquaCropModel(sim_start,sim_end,wdf,custom,crop,initWC, irr_mngt)
 model.run_model(till_termination=True) # run model till the end
 model_df_et = model._outputs.water_flux
 model_df_irr = model._outputs.final_stats
+model_df_water_storage = model._outputs.water_storage
+model_df_crp_grwth = model._outputs.crop_growth
+
 
 ### IRRIGATION
 
@@ -139,8 +144,8 @@ irrig_df  = irrig_df[['UID', 'Year','irrig_wimas', 'Seasonal irrigation (mm)']]
 
 # Yield Data
 # yield data from usda nass https://quickstats.nass.usda.gov/#D93A3218-8B77-31A6-B57C-5A5D97A157D8
-yield_Irrig = pd.read_csv(wd + "/data/agricLand/yield/sheridanYield_Irrig.csv") #CORN, GRAIN, YIELD, MEASURED IN BU / ACRE
-#yield_noIrrig = pd.read_csv(wd.replace('code',"data/agricLand/gridMET/sheridanYield_noIrrig.csv")) #CORN, GRAIN, IRRIGATED - YIELD, MEASURED IN BU / ACRE
+yield_Irrig = pd.read_csv(wd + "/data/agricLand/yield/sheridanYield_Irrig.csv") #CORN, GRAIN, IRRIGATED - YIELD, MEASURED IN BU / ACRE
+#yield_noIrrig = pd.read_csv(wd.replace('code',"data/agricLand/gridMET/sheridanYield_noIrrig.csv")) #CORN, GRAIN, NON-  IRRIGATED - YIELD, MEASURED IN BU / ACRE
 
 # Select year and irrigation value
 yield_Irrig = yield_Irrig[['Year', 'Value']]
@@ -246,23 +251,26 @@ et_means.to_csv(r'./data/analysis_results/et_df_test.csv', sep=',', encoding='ut
 
 
 
+
+
+
+
+## WATER STORAGE
+# add date column from the wdf_date df
+model_df_water_storage = model_df_water_storage.join(wdf_date)
+model_df_water_storage = model_df_water_storage.drop(columns=['index'])
+
+
+
+
+
+
+### CROP GROWTH
+model_df_crp_grwth = model_df_crp_grwth.join(wdf_date)
+model_df_crp_grwth = model_df_crp_grwth.drop(columns=['index'])
+model_df_crp_grwth = model_df_crp_grwth.assign(biomass_stress = model_df_crp_grwth['biomass_ns'] - model_df_crp_grwth['biomass']) # difference in biomass vals
+model_df_crp_grwth = model_df_crp_grwth[model_df_crp_grwth['Date'].between('2000/01/01','2014/12/31')] # filter to match USDA dates (up to 2014)
+
+
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     

@@ -38,10 +38,19 @@ for i in gridMET:
     gridMET_list.append(df)           
     
    
-def gridmet(x, y):
+def gridmet(x):
     u = [] 
-    df = x[x['UID'] == y]
-    u.append(df)
-    return(u)
+    for i in range(0, len(x)):
+        df = x[x['UID'] == i]
+        df = pd.DataFrame(df)
+        u.append(df)
+        return(u)
 
-gridmet(gridMET, c(1381151)
+h = gridmet(gridMET)
+        
+        
+        
+        
+        
+        
+        
