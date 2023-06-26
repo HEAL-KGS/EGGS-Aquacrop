@@ -1,0 +1,1 @@
+# data file*data/* *posters/*.Rproj.user

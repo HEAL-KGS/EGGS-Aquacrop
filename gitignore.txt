@@ -1,0 +1,1 @@
+# data file*data/* *posters/**leaf_area_index/**gmd4_gridMET/**gmd4_soils_county/*.Rproj.user

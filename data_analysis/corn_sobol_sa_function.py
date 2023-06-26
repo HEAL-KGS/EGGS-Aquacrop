@@ -560,6 +560,32 @@ irrig_sobol_n1024_df = [item[0][1] for item in list(map(SobolCornIrrigated, weat
 yield_rainfed_sobol_n1024_df = [item[0] for item in list(map(SobolCornRainfed, weather*2, yield_list_rainfed[1:], sim_years[1:]))] # yield dictionary for 2002/dry is empty so, use 2019 and 2021 only for function to work 
 
 
+# save results for calibration
+
+# irrigation
+irrig_yield_cal = pd.concat(yield_irrig_sobol_n1024_df)
+irrig_yield_cal = irrig_yield_cal[irrig_yield_cal['ST'] > irrig_yield_cal.ST.max()*0.1]
+
+irrigation_cal = pd.concat(irrig_sobol_n1024_df)
+irrigation_cal = irrigation_cal[irrigation_cal['ST'] > irrigation_cal.ST.max()*0.1]
+
+irrig_cal = pd.concat([irrig_yield_cal, irrigation_cal], ignore_index=True)
+irrig_cal = irrig_cal.names.unique()
+
+
+# rainfed
+rain_cal = pd.concat(yield_rainfed_sobol_n1024_df)
+rain_cal = rain_cal[rain_cal['ST'] > rain_cal.ST.max()*0.1]
+rain_cal = pd.DataFrame(rain_cal.names.unique())
+
+
+irrig_cal.to_csv(r'./data/irrigated_corn_calibration_params.txt', header=None, index=None, sep=' ', mode='a')
+
+rain_cal.to_csv(r'./data/rainfed_corn_calibration_params.txt', header=None, index=None, sep=' ', mode='a')
+
+
+
+################# FOR SAVING SA RESULTS ##############################
 with open(wd+'/data/analysis_results/sensitivity_analysis_runs/ks_rainfed_cornyield_soboldf_v2_N1024.pickle', 'rb') as crsdf: 
     yield_rainfed_sobol_n1024_df = pickle.load(crsdf)
 
@@ -571,6 +597,10 @@ with open(wd+'/data/analysis_results/sensitivity_analysis_runs/ks_irrigated_corn
 with open(wd+'/data/analysis_results/sensitivity_analysis_runs/ks_irrigation_corn_soboldf_v2_N1024.pickle', 'rb') as yz: 
     irrig_sobol_n1024_df = pickle.load(yz)
 
+#####################################################################
+
+
+################# IGNORE IGNORE IGNORE ##############################
 sad = irrig_sobol_n1024_df[0]
 
 conditions = [
@@ -634,6 +664,9 @@ colors = {'apple': 'red', 'banana': 'yellow', 'orange': 'orange', 'grape': 'purp
 
 plt.bar(fruits, y, color=[colors[f] for f in fruits])
 plt.show()
+
+###################################################################
+
 
 
 # visuals function - check the y max for each graph combination (rainfed and irrigated) to make them easier to compare
